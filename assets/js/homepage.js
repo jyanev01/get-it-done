@@ -1,16 +1,3 @@
-var getUserRepos = function(user) {
-    // format the github api url
-    var apiUrl = "https://api.github.com/users/"+ user + "/repos";
-
-    // make a request to the url
-    fetch(apiUrl).then(function(response) {
-        console.log(response);
-        response.json().then(function(data){
-            console.log(data, user);
-        });
-    });
-};
-
 // variable for usernames
 var userFormEl = document.querySelector("#user-form");
 var nameInputEl = document.querySelector("#username");
@@ -20,6 +7,7 @@ var repoSearchTerm = document.querySelector("#repo-search-term");
 // function to log the 
 var formSubmitHandler = function(event) {
     event.preventDefault();
+
     // get value from input event
     var username = nameInputEl.value.trim();
 
@@ -29,15 +17,40 @@ var formSubmitHandler = function(event) {
     } else {
         alert("Please enter a GitHub username");        
     }
-
-    console.log(event);
 };
 
-userFormEl.addEventListener("submit", formSubmitHandler);
+var getUserRepos = function(user) {
+    // format the github api url
+    var apiUrl = "https://api.github.com/users/"+ user + "/repos";
+
+    // make a request to the url
+    fetch(apiUrl)
+        .then(function(response) {
+        // request was successful
+        if (response.ok) {
+        response.json().then(function(data){
+            displayRepos(data, user);
+        });
+    } else {
+        alert ('Error:' + response.statusText);
+    } 
+    })
+    .catch(function(error) {
+        // Notice this '.catch()' getting chained onto the end of the '.then' method
+        alert("Unable to connect to GitHub");
+    });  
+};
+
 
 var displayRepos = function(repos, searchTerm) {
-    repoContainerEl.textContent="";
+    //  check if api returned any repos
+    if(repos.length === 0) {
+        repoContainerEl.textContent = "No repositories found.";
+        return;
+    }
+
     repoSearchTerm.textContent= searchTerm;
+
 
     // loop over repos
     for (var i = 0; i < repos.length; i++) {
@@ -52,8 +65,6 @@ var displayRepos = function(repos, searchTerm) {
         var titleEl = document.createElement("span");
         titleEl.textContent= repoName;
 
-        // append to container
-        repoEl.appendChild(titleEl);
         
         //create a status element
         var statusEl = document.createElement("span");
@@ -61,13 +72,21 @@ var displayRepos = function(repos, searchTerm) {
         
         // check if current repo has issue or not
         if (repos[i].open_issues_count > 0) {
-            statusEl.innerHTML = "<i class= 'fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issues(s)";
+            statusEl.innerHTML = 
+            "<i class= 'fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + " issues(s)";
         } else {
-            statusEl.innerHTML ="< i class-'fas fa-check-square status-icon icon-success'></i>";
+            statusEl.innerHTML =
+            "< i class-'fas fa-check-square status-icon icon-success'></i>";
         }
-        
+
+        // append to container
+        repoEl.appendChild(titleEl);
+
         // append container to the dom
         repoContainerEl.appendChild(repoEl);
         
     }
 };
+
+// add event listeners to forms
+userFormEl.addEventListener("submit", formSubmitHandler);
