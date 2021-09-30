@@ -6,6 +6,7 @@ var repoSearchTerm = document.querySelector("#repo-search-term");
 
 // function to log the 
 var formSubmitHandler = function(event) {
+    // prevent page from refreshing
     event.preventDefault();
 
     // get value from input event
@@ -13,6 +14,9 @@ var formSubmitHandler = function(event) {
 
     if (username) {
         getUserRepos(username);
+
+        // clear old content
+        repoContainerEl.textContent= "";
         nameInputEl.value ="";
     } else {
         alert("Please enter a GitHub username");        
@@ -28,8 +32,10 @@ var getUserRepos = function(user) {
         .then(function(response) {
         // request was successful
         if (response.ok) {
-        response.json().then(function(data){
-            displayRepos(data, user);
+            console.log(response);
+            response.json().then(function(data){
+                console.log(data);
+                displayRepos(data, user);
         });
     } else {
         alert ('Error:' + response.statusText);
@@ -64,6 +70,10 @@ var displayRepos = function(repos, searchTerm) {
         // create a span element to hold repository name
         var titleEl = document.createElement("span");
         titleEl.textContent= repoName;
+
+        // append to container
+        repoEl.appendChild(titleEl);
+
 
         
         //create a status element
